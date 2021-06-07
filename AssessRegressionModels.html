@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Assessing Multiple Regression Models</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Vasant Marur" />
+    <meta name="date" content="2021-06-04" />
+    <script src="AssessRegressionModels_files/header-attrs/header-attrs.js"></script>
+    <script src="AssessRegressionModels_files/htmlwidgets/htmlwidgets.js"></script>
+    <script src="AssessRegressionModels_files/jquery/jquery.min.js"></script>
+    <link href="AssessRegressionModels_files/datatables-css/datatables-crosstalk.css" rel="stylesheet" />
+    <script src="AssessRegressionModels_files/datatables-binding/datatables.js"></script>
+    <link href="AssessRegressionModels_files/dt-core/css/jquery.dataTables.min.css" rel="stylesheet" />
+    <link href="AssessRegressionModels_files/dt-core/css/jquery.dataTables.extra.css" rel="stylesheet" />
+    <script src="AssessRegressionModels_files/dt-core/js/jquery.dataTables.min.js"></script>
+    <link href="AssessRegressionModels_files/crosstalk/css/crosstalk.css" rel="stylesheet" />
+    <script src="AssessRegressionModels_files/crosstalk/js/crosstalk.min.js"></script>
+    <script src="AssessRegressionModels_files/kePrint/kePrint.js"></script>
+    <link href="AssessRegressionModels_files/lightable/lightable.css" rel="stylesheet" />
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Assessing Multiple Regression Models
+## why R<sup>2</sup> alone is not enough
+### Vasant Marur
+### 2021-06-04
+
+---
+
+
+
+
+
+
+
+## Simple Linear Regression 
+
+Example from ISLR &lt;sup&gt;1&lt;/sup&gt; using the `Boston` data set from `MASS` library
+.pull-left[
+
+```r
+Boston %&gt;% 
+  mutate(near_river = 
+           ifelse(chas==1,"yes",
+                  "no")) %&gt;% 
+ggplot(.) +
+  aes(lstat, medv,
+      color = near_river) +
+  geom_point() +
+  theme_minimal() +
+  scale_color_discrete() +
+  labs(title = "Median value of homes in $1000s vs percent population of lower status")
+```
+]
+
+.pull-right[
+&lt;img src="AssessRegressionModels_files/figure-html/code-first-1.png" width="100%" /&gt;
+]
+
+.footnote[[1] Gareth James, Daniela Witten, Trevor Hastie, Robert Tibshirani. An Introduction to Statistical Learning : with Applications in R. New York :Springer, 2013.]
+---
+name: lmfit
+
+### Now with linear model fitted
+
+&lt;img src="AssessRegressionModels_files/figure-html/code-fitted-1.svg" width="100%" /&gt;
+ 
+---
+
+## How do the model stats look?
+#### Model Stats
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; term &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; estimate &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; std.error &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; statistic &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; p.value &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; (Intercept) &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 34.55 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.5626 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 61.42 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3.743e-236 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; lstat &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -0.95 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.03873 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -24.53 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 5.081e-88 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+#### the Model metrics
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; r.squared &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; adj.r.squared &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; sigma &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; statistic &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; p.value &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; df &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; logLik &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; AIC &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; BIC &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; deviance &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; df.residual &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; nobs &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 0.5441 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.5432 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 6.216 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 601.6 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 5.081e-88 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -1641 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3289 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3302 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 19470 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 504 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 506 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+---
+## how do the model diagnostic plots look?
+
+&lt;img src="AssessRegressionModels_files/figure-html/modeldiags-1.svg" width="100%" /&gt;
+
+
+
+---
+class: inverse center middle
+
+# Multiple Linear Regression
+
+
+---
+# Generating some random data
+
+.details[
+
+```r
+set.seed(42)
+y &lt;-rnorm(1000, mean = 3, sd = 5)
+random_data &lt;- data.frame(y)
+random_data &lt;- random_data %&gt;% 
+  mutate(x = rnorm_pre(y, mu = 6,
+                       sd = 2, r = 0.8))
+random_data &lt;- random_data %&gt;% 
+  mutate(x1 = rnorm_pre(y, mu = 6.1, 
+                        sd = 5, r = 0.97))
+random_data &lt;- random_data %&gt;% 
+  mutate(x2 = rnorm_pre(y, mu = 6, 
+                        sd = 2, r = 0.67))
+#
+#
+#
+random_data &lt;- random_data %&gt;% 
+  mutate(x6 = rnorm_pre(y, mu = 5, 
+                        sd = 6, r = 0.4))
+```
+
+]
+
+---
+### The generated data
+.details.open[
+
+```r
+head(random_data,n = 20) %&gt;% 
+              dplyr::mutate_if(is.numeric, 
+                   ~ as.character(round(.,2))) %&gt;% 
+  DT::datatable(.,fillContainer = FALSE,
+                options = list(pageLength = 4))
+```
+
+<div id="htmlwidget-e85ed3b9ef210707a7ce" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-e85ed3b9ef210707a7ce">{"x":{"filter":"none","fillContainer":false,"data":[["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"],["9.85","0.18","4.82","6.16","5.02","2.47","10.56","2.53","13.09","2.69","9.52","14.43","-3.94","1.61","2.33","6.18","1.58","-10.28","-9.2","9.6"],["8.81","3.98","6","7.34","3.34","4.92","9.54","5.58","9.12","7","7.63","10.63","2.11","4.19","3.91","7.25","5.37","3.35","1.97","9.87"],["12.51","2.34","6.81","9.81","5.96","6.45","13.96","4.46","15.74","6.85","14.09","19.05","-0.28","4.39","5.95","8.8","3.37","-5.86","-5","14.05"],["7.07","5.36","7.64","5.54","6.92","5.76","6.51","6.7","5.49","8.19","9.65","9","3.32","6.09","5.06","6.61","5.91","1.98","4.98","7.4"],["7.27","5.16","7.25","7.8","3.74","7.6","10","4.88","5.4","3.51","4.58","9.2","5.67","8.24","6.56","8.36","4.99","1.68","3.93","8.18"],["7.63","3.57","6.74","5.84","6.54","7.96","5.84","4.63","8.9","7.91","9.8","10.02","1.33","5.88","5.86","7.94","5.41","-1.29","0.98","10.87"],["11.96","9.16","10.16","11.65","10.33","4.11","19.59","9.31","14.11","5.5","3.08","12.12","1.38","-2.44","10.23","8.48","12.35","-0.55","7.27","5.53"],["2.03","0.6","0.09","7.08","6.13","8.32","12.83","5.65","19.09","8.9","2.76","12.53","6.44","2.49","-1.27","14.6","2.72","-4.95","-1.94","7.28"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>y<\/th>\n      <th>x<\/th>\n      <th>x1<\/th>\n      <th>x2<\/th>\n      <th>x3<\/th>\n      <th>x4<\/th>\n      <th>x5<\/th>\n      <th>x6<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":4,"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}],"lengthMenu":[4,10,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+]
+
+
+
+---
+### Let's visualize the predictors and response variable
+&lt;img src="AssessRegressionModels_files/figure-html/unnamed-chunk-5-1.png" width="100%" /&gt;
+---
+#### How do they correlate with each other and `\(y\)`
+
+```r
+ggpairs(random_data) +
+   theme_xaringan(title_font_size = 10,
+                 text_font_size = 11)
+```
+
+&lt;img src="AssessRegressionModels_files/figure-html/unnamed-chunk-6-1.png" width="100%" /&gt;
+
+---
+### The multiple regression model
+
+We're going to fit a multiple linear regression model, which takes the form
+`$$Y= \beta_0 +\beta_1X_1 +\beta_2X_2+ ... +\beta_pX_p +\epsilon$$` 
+We will start with one predictor to get a baseline and add more as we go along and look at the metrics.
+
+```r
+lm_random &lt;- lm ( y ~ x, data = random_data)
+lm_random_tidy &lt;-tidy(lm_random)
+
+lm_random_tidy %&gt;% 
+  dplyr::mutate_if(is.numeric, 
+                   ~ as.character(signif(.,4))) %&gt;% 
+  knitr::kable(., format = 'html')
+```
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; term &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; estimate &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; std.error &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; statistic &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; p.value &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; (Intercept) &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -9.361 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.2784 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -33.62 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2.727e-166 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; x &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2.027 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.04372 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 46.38 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3.01e-251 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+---
+### Goodness of fit Measures
+
+```r
+glance(lm_random) %&gt;% dplyr::mutate_if(is.numeric, 
+                                       ~ as.character(signif(.,4))) %&gt;% 
+    knitr::kable(., format = 'html')
+```
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; r.squared &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; adj.r.squared &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; sigma &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; statistic &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; p.value &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; df &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; logLik &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; AIC &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; BIC &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; deviance &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; df.residual &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; nobs &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 0.6831 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.6827 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2.823 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2151 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3.01e-251 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -2456 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 4918 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 4932 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 7956 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 998 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1000 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+---
+### Adding more variables a.k.a stepwise
+
+&gt; Yes stepwise is not recommended, and more appropriate methods such as shrinkage a.k.a regularization are better &lt;sup&gt;2&lt;/sup&gt;
+&gt; 
+&gt; We're doing this to see the effect on R&lt;sup&gt;2&lt;/sup&gt;, AIC, BIC as we add more variables.
+
+.footnote[[2] Smith, G. Step away from stepwise. _J Big Data_ 5, 32 (2018). https://doi.org/10.1186/s40537-018-0143-6 https://rdcu.be/clWQm]
+---
+### Adding one more variable
+We're going to fit a multiple linear regression model, with two variables, which takes the form
+`$$Y= \beta_0 +\beta_1X_1 +\beta_2X_2 +\epsilon$$` 
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; term &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; estimate &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; std.error &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; statistic &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; p.value &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; (Intercept) &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -4.247 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.143 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -29.71 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1.951e-139 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; x &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.3531 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.0316 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 11.17 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2.173e-27 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; x1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.846 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.01281 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 66.04 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+#### Goodness of fit Measures
+
+```r
+glance(lm_random1) %&gt;% dplyr::mutate_if(is.numeric, 
+                                       ~ as.character(signif(.,4))) %&gt;% 
+    knitr::kable(., format = 'html')
+```
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; r.squared &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; adj.r.squared &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; sigma &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; statistic &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; p.value &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; df &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; logLik &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; AIC &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; BIC &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; deviance &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; df.residual &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; nobs &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 0.941 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.9409 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1.219 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 7954 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -1615 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3238 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3258 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1480 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 997 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1000 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+---
+### Comparing model metrics
+&lt;table class=" lightable-paper lightable-hover" style='font-family: "Arial Narrow", arial, helvetica, sans-serif; width: auto !important; margin-left: auto; margin-right: auto;'&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; no_of_vars &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; r.squared &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; adj.r.squared &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; sigma &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; statistic &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; p.value &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; df &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; logLik &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; AIC &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; BIC &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; deviance &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; df.residual &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; nobs &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.6831 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.6827 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2.823 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2151 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3.01e-251 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -2456 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 4918 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 4932 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 7956 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 998 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1000 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.94102263 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.94090432 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1.2185446 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 7953.895 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -1615.0935 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3238.187 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3257.818 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1480.3965 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 997 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1000 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.94399021 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.94382151 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1.188088 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 5595.5354 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -1589.2799 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3188.5597 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3213.0985 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1405.907 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 996 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1000 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.94549963 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.94528053 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1.1725585 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 4315.4392 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -1575.6204 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3163.2407 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3192.6873 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1368.0189 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 995 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1000 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.94725264 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.94698731 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1.1541267 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3570.1091 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -1559.2735 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3132.5469 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3166.9012 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1324.0164 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 994 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1000 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.94833871 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.94802656 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1.1427581 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3038.0593 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -1548.871 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3113.742 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3153.004 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1296.7549 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 993 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1000 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 7 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.94869284 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.94833079 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1.1394086 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2620.3617 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 7 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -1545.4318 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3108.8636 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3153.0334 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1287.866 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 992 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1000 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+---
+
+
+
+
+&lt;img src="AssessRegressionModels_files/figure-html/unnamed-chunk-10-1.png" width="100%" /&gt;
+
+The metrics don't change much after 3 or more variables, of course this will change for real data which are not as correlated. but it's pretty evident from this graph and the table on previous slide that R&lt;sup&gt;2&lt;/sup&gt; does increase as we add more variables to the model.
+
+---
+### Let's see how this approach works on the Boston data set
+&lt;table class=" lightable-paper lightable-hover table" style='font-family: "Arial Narrow", arial, helvetica, sans-serif; width: auto !important; margin-left: auto; margin-right: auto; font-size: 10px; margin-left: auto; margin-right: auto;'&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; no_of_vars &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; r.squared &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; adj.r.squared &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; sigma &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; statistic &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; p.value &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; df &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; logLik &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; AIC &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; BIC &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; deviance &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; df.residual &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; nobs &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.5441 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.5432 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 6.216 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 601.6 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 5.081e-88 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -1641 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3289 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3302 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 19470 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 504 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 506 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.23398844 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.23094267 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 8.0654845 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 76.824026 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 7.6768693e-30 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -1772.8009 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3553.6018 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3570.5079 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 32721.176 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 503 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 506 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.29371357 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.28949274 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 7.7523855 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 69.5866 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1.2110319e-37 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -1752.2633 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3514.5265 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3535.6592 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 30169.94 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 502 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 506 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.32952772 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.32417465 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 7.5608103 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 61.558619 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 2.6935556e-42 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -1739.0975 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3490.195 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3515.5543 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 28640.092 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 501 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 506 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.3313127 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.32462583 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 7.5582861 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 49.546732 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1.1691645e-41 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -1738.4231 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3490.8461 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3520.4319 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 28563.844 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 500 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 506 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.58737696 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.58241556 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 5.9432398 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 118.38938 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1.3157599e-92 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -1616.2792 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3248.5584 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3282.3707 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 17625.728 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 499 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 506 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 7 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.58949016 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.58371994 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 5.9339503 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 102.1608 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 4.2005869e-92 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 7 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -1614.9802 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3247.9603 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3285.9991 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 17535.46 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 498 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 506 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 8 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.63114876 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.62521152 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 5.6304644 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 106.30333 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1.5284484e-102 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 8 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -1587.9075 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3195.815 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3238.0804 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 15755.959 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 497 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 506 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 9 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.63194785 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.62526949 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 5.630029 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 94.626125 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 9.5525574e-102 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 9 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -1587.3588 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3196.7176 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3243.2095 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 15721.824 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 496 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 506 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 10 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.6396628 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.63238326 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 5.5763335 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 87.87133 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 5.3062041e-103 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 10 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -1581.9992 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3187.9983 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3238.7168 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 15392.27 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 495 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 506 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 11 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.67031409 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.6629729 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 5.33929 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 91.308713 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1.8315851e-111 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 11 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -1559.5075 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3145.015 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3199.96 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 14082.961 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 494 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 506 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 12 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.68420428 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.67651757 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 5.2309004 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 89.011316 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 4.8951312e-115 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 12 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -1548.6172 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3125.2343 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3184.4058 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 13489.623 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 493 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 506 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 13 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.74064266 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.73378973 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 4.7452982 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 108.07667 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 6.7221748e-135 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 13 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -1498.8043 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3027.6086 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3091.0066 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 11078.785 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 492 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 506 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+---
+
+&lt;img src="AssessRegressionModels_files/figure-html/unnamed-chunk-11-1.png" width="100%" /&gt;
+
+The metrics for Boston data set definitely change a lot. You can see how the r.squared decreases &amp; AIC/BIC both increase(lower value better) when you add more variables initially. After 5 variables all the measures show an improvement. Again it's pretty evident from this graph and the table on previous slide that R&lt;sup&gt;2&lt;/sup&gt; does increase as we add more variables to the model.
+
+---
+class: center, middle
+
+So only R&lt;sup&gt;2&lt;/sup&gt; alone is bad idea, start by looking at residual plots, 
+look and use confidence intervals for slope and intercept instead if trying to learn from the model and SE or prediction intervals if using model for prediction.
+
+Read _Chapter 6 Linear Model Selection and Regularization_ of ISLR for more details on `\(C_p\)`, AIC, BIC, R&lt;sup&gt;2&lt;/sup&gt;&lt;br&gt;
+Also, read [is R-squared Useless](https://data.library.virginia.edu/is-r-squared-useless/)
+
+# Thanks!
+
+Slides created via the R packages:
+
+[**xaringan**](https://github.com/yihui/xaringan)&lt;br&gt;
+[gadenbuie/xaringanthemer](https://github.com/gadenbuie/xaringanthemer)
+
+The chakra comes from [remark.js](https://remarkjs.com), [**knitr**](http://yihui.name/knitr), and [R Markdown](https://rmarkdown.rstudio.com).
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"slideNumberFormat": "%current%",
+"highlightStyle": "github",
+"highlightLines": true,
+"ratio": "16:9",
+"countIncrementalSlides": true
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+<script>
+(function() {
+  var divHTML = document.querySelectorAll(".details");
+  divHTML.forEach(function (el) {
+    var preNodes = el.getElementsByTagName("pre");
+    if (preNodes.length < 2) return;
+    var outputNode = preNodes[1];
+    outputNode.outerHTML = "<details " +
+      (el.classList.contains("open") ? "open " : "") +
+      "class='output'><summary>Output</summary>" +
+      outputNode.outerHTML + "</details>";
+  });
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
