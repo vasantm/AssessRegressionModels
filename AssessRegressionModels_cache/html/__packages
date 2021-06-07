@@ -1,0 +1,17 @@
+base
+ggplot2
+MASS
+ISLR
+dplyr
+broom
+ggpmisc
+ggfortify
+xaringanthemer
+ggridges
+tidyr
+ggplot2movies
+gridExtra
+cowplot
+faux
+GGally
+kableExtra
