@@ -1,7 +1,7 @@
 ---
 title: "Assessing Multiple Regression Models"
-subtitle: "why R^2 alone is not enough"  
-author: "Vasant Marur
+subtitle: "why R^2^ alone is not enough"  
+author: "Vasant Marur"
 date: '`r Sys.Date()`'
 output:
   xaringan::moon_reader:
@@ -12,6 +12,8 @@ output:
       highlightLines: true
       ratio: 16:9
       countIncrementalSlides: true
+    includes:
+     after_body: "collapseoutput.js"
 ---
 
 ```{r setup, include=FALSE}
@@ -29,294 +31,408 @@ knitr::opts_chunk$set(
 ```
 
 ```{r xaringan-themer, include=FALSE, warning=FALSE}
+library(ggplot2)
+library(MASS)
+library(ISLR)
+library(dplyr)
+library(broom)
+library(ggpmisc)
+library(ggfortify)
 library(xaringanthemer)
-style_duo_accent(
-  primary_color = "#1381B0",
-  secondary_color = "#FF961C",
-  inverse_header_color = "#FFFFFF"
+library(ggridges)
+library(tidyr)
+library(cowplot)
+library(faux)
+library(GGally)
+library(kableExtra)
+style_solarized_light(
+   footnote_font_size = "0.7em"
 )
 ```
 
-## Typography
 
-Text can be **bold**, _italic_, ~~strikethrough~~, or `inline code`.
+## Simple Linear Regression 
 
-[Link to another slide](#colors).
-
-### Lorem Ipsum
-
-Dolor imperdiet nostra sapien scelerisque praesent curae metus facilisis dignissim tortor. 
-Lacinia neque mollis nascetur neque urna velit bibendum. 
-Himenaeos suspendisse leo varius mus risus sagittis aliquet venenatis duis nec.
-
-- Dolor cubilia nostra nunc sodales
-
-- Consectetur aliquet mauris blandit
-
-- Ipsum dis nec porttitor urna sed
-
----
-name: colors
-
-## Colors
-
-- <span style="color: var(--text-color)">Text Color</span>
-
-- <span style="color: var(--header-color); font-family: var(--header-font-family);">Header Color</span>
-
-- <span style="color: var(--link-color)">Link Color</span>
-
-- <span style="color: var(--text-bold-color); font-weight: bold;">Bold Color</span>
-
-- `inline code color`
-
----
-
-# Big Topic or Inverse Slides `#`
-
-## Slide Headings `##`
-
-### Sub-slide Headings `###`
-
-#### Bold Call-Out `####`
-
-This is a normal paragraph text. Only use header levels 1-4.
-
-##### Possible, but not recommended `#####`
-
-###### Definitely don't use h6 `######`
-
----
-class: inverse center middle
-
-# Topic Changing Interstitial
-
---
-
-```
-class: inverse center middle
-```
-
----
-layout: true
-
-## Blocks
-
----
-
-### Blockquote
-
-> This is a blockquote following a header.
->
-> When something is important enough, you do it even if the odds are not in your favor.
-
----
-
-### Code Blocks
-
-#### R Code
-
-```{r eval=FALSE}
-ggplot(gapminder) +
-  aes(x = gdpPercap, y = lifeExp, size = pop, color = country) +
+Example from ISLR <sup>1</sup> using the `Boston` data set from `MASS` library
+.pull-left[
+```{r code-first, fig.show="hide", warning=FALSE}
+Boston %>% 
+  mutate(near_river = 
+           ifelse(chas==1,"yes",
+                  "no")) %>% 
+ggplot(.) +
+  aes(lstat, medv,
+      color = near_river) +
   geom_point() +
-  facet_wrap(~year)
+  theme_minimal() +
+  scale_color_discrete() +
+  labs(title = "Median value of homes in $1000s vs percent population of lower status")
+```
+]
+
+.pull-right[
+```{r, echo=FALSE}
+knitr::include_graphics(
+  knitr::fig_chunk("code-first", "png")
+)
+```
+]
+
+.footnote[[1] Gareth James, Daniela Witten, Trevor Hastie, Robert Tibshirani. An Introduction to Statistical Learning : with Applications in R. New York :Springer, 2013.]
+---
+name: lmfit
+
+### Now with linear model fitted
+
+```{r code-fitted, dev='svg',echo=FALSE,warning=FALSE}
+
+
+formula <- y ~ x
+Boston %>% 
+  mutate(near_river = 
+           ifelse(chas==1,"yes",
+                  "no")) %>% 
+ggplot(.) +
+  aes(x=lstat, y=medv)+#,
+      #color = near_river) +
+  geom_point() +
+  geom_smooth(method = "lm", se = F) +
+  theme_xaringan(text_font_size = 11) +
+  scale_color_discrete() +
+  labs(title = "% popn. of lower status vs Med. value of homes in $1000s") +
+  stat_poly_eq(aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
+                   label.x.npc = "right", label.y.npc = 0.85,
+                   formula = formula, parse = TRUE, size = 4) +
+  theme(plot.title = element_text(size=14))
+  
+```
+ 
+---
+
+## How do the model stats look?
+#### Model Stats
+```{r modelstats, dev='svg',echo=FALSE,warning=FALSE}
+lm_fit_Boston1  = lm(medv ~ lstat, data = Boston)
+lm_fit_Boston1_tidy <-tidy(lm_fit_Boston1)
+
+lm_fit_Boston1_tidy %>% 
+  dplyr::mutate_if(is.numeric, 
+                   ~ as.character(signif(.,4))) %>% 
+  knitr::kable(., format = 'html')
 ```
 
-#### JavaScript
+#### the Model metrics
+```{r modelsmetrics,echo=FALSE,warning=FALSE}
 
-```js
-var fun = function lang(l) {
-  dateformat.i18n = require('./lang/' + l)
-  return true;
+glance(lm_fit_Boston1) %>% 
+  dplyr::mutate_if(is.numeric, 
+                   ~ as.character(signif(.,4))) %>% 
+  knitr::kable(., format = 'html')
+
+```
+
+
+---
+## how do the model diagnostic plots look?
+
+```{r modeldiags, dev='svg',echo=FALSE,warning=FALSE}
+autoplot(lm_fit_Boston1) + 
+  theme_xaringan(title_font_size = 10,
+                 text_font_size = 11)
+```
+
+
+
+---
+class: inverse center middle
+
+# Multiple Linear Regression
+
+
+---
+# Generating some random data
+
+.details[
+```{r, eval=FALSE}
+set.seed(42)
+y <-rnorm(1000, mean = 3, sd = 5)
+random_data <- data.frame(y)
+random_data <- random_data %>% 
+  mutate(x = rnorm_pre(y, mu = 6,
+                       sd = 2, r = 0.8))
+random_data <- random_data %>% 
+  mutate(x1 = rnorm_pre(y, mu = 6.1, 
+                        sd = 5, r = 0.97))
+random_data <- random_data %>% 
+  mutate(x2 = rnorm_pre(y, mu = 6, 
+                        sd = 2, r = 0.67))
+#
+#
+#
+random_data <- random_data %>% 
+  mutate(x6 = rnorm_pre(y, mu = 5, 
+                        sd = 6, r = 0.4))
+```
+```{r,echo=FALSE}
+set.seed(42)
+y <-rnorm(1000, mean = 3, sd = 5)
+random_data <- data.frame(y)
+random_data <- random_data %>% 
+  mutate(x = rnorm_pre(y, mu = 6,
+                       sd = 2, r = 0.8))
+random_data <- random_data %>% 
+  mutate(x1 = rnorm_pre(y, mu = 6.1, 
+                        sd = 5, r = 0.97))
+random_data <- random_data %>% 
+  mutate(x2 = rnorm_pre(y, mu = 6, 
+                        sd = 2, r = 0.67))
+random_data <- random_data %>% 
+  mutate(x3 = rnorm_pre(y, mu = 6.2, 
+                        sd = 2, r = 0.6))
+random_data <- random_data %>% 
+  mutate(x4 = rnorm_pre(y, mu = 6, 
+                        sd = 2.5, r = 0.7))
+random_data <- random_data %>% 
+  mutate(x5 = rnorm_pre(y, mu = 7, 
+                        sd = 5, r = 0.5))
+random_data <- random_data %>% 
+  mutate(x6 = rnorm_pre(y, mu = 5, 
+                        sd = 6, r = 0.4))
+```
+]
+
+---
+### The generated data
+.details.open[
+```{r}
+head(random_data,n = 20) %>% 
+              dplyr::mutate_if(is.numeric, 
+                   ~ as.character(round(.,2))) %>% 
+  DT::datatable(.,fillContainer = FALSE,
+                options = list(pageLength = 4))
+```
+]
+
+
+
+---
+### Let's visualize the predictors and response variable
+```{r echo=FALSE, fig.env="svg"}
+pivot_longer(random_data, cols = starts_with("x"),names_to = "predictors") ->random_data_long
+
+random_data_long %>% group_by(predictors) %>%
+mutate(length = row_number())->random_data_long
+p_X <-ggplot(random_data_long, aes(y = predictors, x = value, fill = predictors)) + geom_density_ridges(size =0.5,rel_min_height = 0.0005, scale = 3,                                        alpha = .8) +
+    scale_fill_viridis_d(name = "values of X", option = "B") +
+    scale_y_discrete(expand = c(0, 0)) +
+    scale_x_continuous(expand = c(0, 0))+
+    labs(
+        title = "Distribution of predictors",
+        subtitle ="normally distirbuted with means (1000~1160) and sd (12~35)"
+    ) +
+    theme_ridges(font_size = 13, grid = TRUE) + 
+    theme(axis.title.y = element_blank())
+p_y <-ggplot(random_data_long, aes(y, fill = y)) + 
+  geom_density() +
+  labs(
+    title= "Distribution of Y",
+    subtitle = "Normally distributed with Mean of 3000 with sf of 15"
+) +
+theme_ridges(font_size = 13, grid = TRUE) + 
+  theme(axis.title.y = element_blank())
+plot_grid(p_X,p_y)
+
+```
+---
+#### How do they correlate with each other and $y$
+```{r, cache=TRUE}
+ggpairs(random_data) +
+   theme_xaringan(title_font_size = 10,
+                 text_font_size = 11)
+```
+
+---
+### The multiple regression model
+
+We're going to fit a multiple linear regression model, which takes the form
+$$Y= \beta_0 +\beta_1X_1 +\beta_2X_2+ ... +\beta_pX_p +\epsilon$$ 
+We will start with one predictor to get a baseline and add more as we go along and look at the metrics.
+```{r multireg}
+lm_random <- lm ( y ~ x, data = random_data)
+lm_random_tidy <-tidy(lm_random)
+
+lm_random_tidy %>% 
+  dplyr::mutate_if(is.numeric, 
+                   ~ as.character(signif(.,4))) %>% 
+  knitr::kable(., format = 'html')
+```
+---
+### Goodness of fit Measures
+```{r}
+glance(lm_random) %>% dplyr::mutate_if(is.numeric, 
+                                       ~ as.character(signif(.,4))) %>% 
+    knitr::kable(., format = 'html')
+```
+---
+### Adding more variables a.k.a stepwise
+
+> Yes stepwise is not recommended, and more appropriate methods such as shrinkage a.k.a regularization are better <sup>2</sup>
+> 
+> We're doing this to see the effect on R<sup>2</sup>, AIC, BIC as we add more variables.
+
+.footnote[[2] Smith, G. Step away from stepwise. _J Big Data_ 5, 32 (2018). https://doi.org/10.1186/s40537-018-0143-6 https://rdcu.be/clWQm]
+---
+### Adding one more variable
+We're going to fit a multiple linear regression model, with two variables, which takes the form
+$$Y= \beta_0 +\beta_1X_1 +\beta_2X_2 +\epsilon$$ 
+```{r multireg1, echo=FALSE}
+lm_random1 <- lm ( y ~ x + x1, data = random_data)
+lm_random1_tidy <-tidy(lm_random1)
+
+lm_random1_tidy %>% 
+  dplyr::mutate_if(is.numeric, 
+                   ~ as.character(signif(.,4))) %>% 
+  knitr::kable(., format = 'html')
+```
+
+#### Goodness of fit Measures
+```{r}
+glance(lm_random1) %>% dplyr::mutate_if(is.numeric, 
+                                       ~ as.character(signif(.,4))) %>% 
+    knitr::kable(., format = 'html')
+```
+---
+### Comparing model metrics
+```{r, echo=FALSE}
+
+
+lm_fit <-list()
+for(i in 2:(ncol(random_data)-1)){
+  index <-2:(i+1)
+  #print(index)
+  if (length(index)<2){
+    preds <-names(random_data[index])
+    #print(preds)
+  } else{
+    preds <-names(random_data)[index]
+    preds_to_incl <-glue::glue_collapse(names(random_data)[index],sep=" + ")
+    #print(preds_to_incl)
+  }
+  #print (paste0("y ~ ",preds_to_incl))
+  lm_fit[[i]] <- lm(paste0("y ~ ",preds_to_incl), data = random_data)
 }
+
+lapply(lm_fit, function(x) glance(x))->lm_fit_glance
+
+bind_rows(lm_fit_glance) %>% 
+  dplyr::mutate_if(is.numeric, 
+                   ~ as.character(signif(.,8))) %>%
+  mutate(no_of_vars =df) %>%
+  select(no_of_vars, everything())->lm_fit_all
+
+glance(lm_random) %>% dplyr::mutate_if(is.numeric, 
+                                       ~ as.character(signif(.,4))) %>%
+  dplyr::mutate(no_of_vars = "1") %>% 
+  select(no_of_vars, everything())->lm_fit1
+
+bind_rows(lm_fit1,lm_fit_all) ->lm_fit_all
+lm_fit_all %>% 
+  dplyr::mutate_if(is.character, 
+~ as.numeric(.)) ->lm_fit_all_numeric
+lm_fit_all %>% 
+kableExtra::kbl(., format = 'html') %>% 
+  kableExtra::kable_paper("hover",full_width = F)
+```
+---
+
+
+
+
+```{r,echo=FALSE}
+lm_fit_all_numeric %>% 
+  select(no_of_vars,r.squared,adj.r.squared,AIC,BIC) %>%
+pivot_longer(.,cols = r.squared:BIC, names_to = "measure") %>%
+ggplot(., aes(y=value,x=no_of_vars)) + geom_point() + geom_line() + facet_wrap(~measure,scales = "free", nrow=1) +
+   theme_xaringan(title_font_size = 10,
+                 text_font_size = 11) +
+  labs(
+    title = "Graphs showing how inlcuded number of variables affects metrics",
+    subtitle = "all models are linear models")
 ```
 
+The metrics don't change much after 3 or more variables, of course this will change for real data which are not as correlated. but it's pretty evident from this graph and the table on previous slide that R<sup>2</sup> does increase as we add more variables to the model.
+
+---
+### Let's see how this approach works on the Boston data set
+```{r boston-lm, echo=FALSE}
+lm_fit <-list()
+for(i in 1:(ncol(Boston)-2)){
+  index <-1:(i+1)
+ # print(index)
+  if (length(index)<2){
+    preds <-names(Boston[index])
+#    print(preds)
+  } else{
+    preds <-names(Boston)[index]
+    preds_to_incl <-glue::glue_collapse(names(Boston)[index],sep=" + ")
+ #   print(preds_to_incl)
+  }
+#  print (paste0("medv ~ ",preds_to_incl))
+  lm_fit[[i]] <- lm(paste0("medv ~ ",preds_to_incl), data = Boston)
+}
+
+lapply(lm_fit, function(x) glance(x))->lm_fit_glance
+
+bind_rows(lm_fit_glance) %>% 
+  dplyr::mutate_if(is.numeric, 
+                   ~ as.character(signif(.,8))) %>%
+  mutate(no_of_vars =df) %>%
+  select(no_of_vars, everything())->lm_fit_all
+
+glance(lm_fit_Boston1) %>% dplyr::mutate_if(is.numeric, 
+                                       ~ as.character(signif(.,4))) %>%
+  dplyr::mutate(no_of_vars = "1") %>% 
+  select(no_of_vars, everything())->lm_fit1
+
+bind_rows(lm_fit1,lm_fit_all) ->lm_fit_all
+lm_fit_all %>% 
+  dplyr::mutate_if(is.character, 
+~ as.numeric(.)) ->lm_fit_all_numeric
+lm_fit_all %>% 
+kableExtra::kbl(., format = 'html') %>% 
+  kableExtra::kable_paper("hover",
+                          full_width = F) %>% 
+  kable_styling(font_size = 10)
+
+
+
+```
 ---
 
-### More R Code
-
-```{r eval=FALSE}
-dplyr::starwars %>% dplyr::slice_sample(n = 4)
+```{r,echo=FALSE}
+lm_fit_all_numeric %>% 
+  select(no_of_vars,r.squared,adj.r.squared,AIC,BIC) %>%
+pivot_longer(.,cols = r.squared:BIC, names_to = "measure") %>%
+ggplot(., aes(y=value,x=no_of_vars)) + geom_point() + geom_line() +
+  scale_x_continuous(breaks = seq(1,13))+
+  facet_wrap(~measure,scales = "free", nrow=1) +
+   theme_xaringan(title_font_size = 10,
+                 text_font_size = 11) +
+  labs(
+    title = "Graphs showing how inlcuded number of variables affects metrics",
+    subtitle = "all models are linear models for Boston data set")
 ```
 
----
-
-```{r message=TRUE}
-cli::cli_alert_success("It worked!")
-```
-
---
-
-```{r message=TRUE}
-message("Just a friendly message")
-```
-
---
-
-```{r warning=TRUE}
-warning("This could be bad...")
-```
-
---
-
-```{r error=TRUE}
-stop("I hope you're sitting down for this")
-```
-
-
----
-layout: true
-
-## Tables
-
----
-
-```{r}
-tibble::as_tibble(mtcars)
-```
-
----
-
-```{r}
-knitr::kable(head(mtcars), format = 'html')
-```
-
----
-
-```{r}
-DT::datatable(head(mtcars), fillContainer = FALSE, options = list(pageLength = 4))
-```
-
----
-layout: true
-
-## Lists
-
----
-
-.pull-left[
-#### Here is an unordered list:
-
-*   Item foo
-*   Item bar
-*   Item baz
-*   Item zip
-]
-
-.pull-right[
-
-#### And an ordered list:
-
-1.  Item one
-1.  Item two
-1.  Item three
-1.  Item four
-]
-
----
-
-### And a nested list:
-
-- level 1 item
-  - level 2 item
-  - level 2 item
-    - level 3 item
-    - level 3 item
-- level 1 item
-  - level 2 item
-  - level 2 item
-  - level 2 item
-- level 1 item
-  - level 2 item
-  - level 2 item
-- level 1 item
-
----
-
-### Nesting an ol in ul in an ol
-
-- level 1 item (ul)
-  1. level 2 item (ol)
-  1. level 2 item (ol)
-    - level 3 item (ul)
-    - level 3 item (ul)
-- level 1 item (ul)
-  1. level 2 item (ol)
-  1. level 2 item (ol)
-    - level 3 item (ul)
-    - level 3 item (ul)
-  1. level 4 item (ol)
-  1. level 4 item (ol)
-    - level 3 item (ul)
-    - level 3 item (ul)
-- level 1 item (ul)
-
----
-layout: true
-
-## Plots
-
----
-
-```{r plot-example}
-library(ggplot2)
-(g <- ggplot(mpg) + aes(hwy, cty, color = class) + geom_point())
-```
-
----
-
-```{r plot-example-themed}
-g + xaringanthemer::theme_xaringan(text_font_size = 16, title_font_size = 18) +
-  ggtitle("A Plot About Cars")
-```
-
----
-layout: false
-
-## Square image
-
-<center><img src="https://octodex.github.com/images/labtocat.png" height="400px" /></center>
-
-.footnote[GitHub Octocat]
-
----
-
-### Wide image
-
-![](https://guides.github.com/activities/hello-world/branching.png)
-
-.footnote[Wide images scale to 100% slide width]
-
----
-
-## Two images
-
-.pull-left[
-![](https://octodex.github.com/images/motherhubbertocat.png)
-]
-
-.pull-right[
-![](https://octodex.github.com/images/dinotocat.png)
-]
-
----
-
-### Definition lists can be used with HTML syntax.
-
-<dl>
-<dt>Name</dt>
-<dd>Godzilla</dd>
-<dt>Born</dt>
-<dd>1952</dd>
-<dt>Birthplace</dt>
-<dd>Japan</dd>
-<dt>Color</dt>
-<dd>Green</dd>
-</dl>
+The metrics for Boston data set definitely change a lot. You can see how the r.squared decreases & AIC/BIC both increase(lower value better) when you add more variables initially. After 5 variables all the measures show an improvement. Again it's pretty evident from this graph and the table on previous slide that R<sup>2</sup> does increase as we add more variables to the model.
 
 ---
 class: center, middle
+
+So only R<sup>2</sup> alone is bad idea, start by looking at residual plots, 
+look and use confidence intervals for slope and intercept instead if trying to learn from the model and SE or prediction intervals if using model for prediction.
+
+Read _Chapter 6 Linear Model Selection and Regularization_ of ISLR for more details on $C_p$, AIC, BIC, R<sup>2</sup><br>
+Also, read [is R-squared Useless](https://data.library.virginia.edu/is-r-squared-useless/)
 
 # Thanks!
 
