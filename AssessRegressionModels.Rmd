@@ -160,7 +160,7 @@ ggplot(.) +
 ---
 
 ## How do the model stats look?
-#### Model Stats
+#### Model Stats for $$medv = \beta_0 +\beta_1lstat +\epsilon$$ 
 ```{r modelstats, dev='svg',echo=FALSE,warning=FALSE}
 lm_fit_Boston1  = lm(medv ~ lstat, data = Boston)
 lm_fit_Boston1_tidy <-tidy(lm_fit_Boston1)
@@ -184,7 +184,7 @@ glance(lm_fit_Boston1) %>%
 
 ---
 ## how do the model diagnostic plots look?
-
+#### For $$medv = \beta_0 +\beta_1lstat +\epsilon$$ 
 ```{r modeldiags, dev='svg',echo=FALSE,warning=FALSE}
 autoplot(lm_fit_Boston1) + 
   theme_xaringan(title_font_size = 10,
