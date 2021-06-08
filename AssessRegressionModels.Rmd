@@ -160,7 +160,7 @@ ggplot(.) +
 ---
 
 ## How do the model stats look?
-#### Model Stats for $$medv = \beta_0 +\beta_1lstat +\epsilon$$ 
+#### Model Stats for $medv = \beta_0 +\beta_1lstat +\epsilon$ 
 ```{r modelstats, dev='svg',echo=FALSE,warning=FALSE}
 lm_fit_Boston1  = lm(medv ~ lstat, data = Boston)
 lm_fit_Boston1_tidy <-tidy(lm_fit_Boston1)
@@ -184,16 +184,17 @@ glance(lm_fit_Boston1) %>%
 
 ---
 ## how do the model diagnostic plots look?
-#### For $$medv = \beta_0 +\beta_1lstat +\epsilon$$ 
+#### For $medv = \beta_0 +\beta_1lstat +\epsilon$
 ```{r modeldiags, dev='svg',echo=FALSE,warning=FALSE}
 autoplot(lm_fit_Boston1) + 
   theme_xaringan(title_font_size = 10,
                  text_font_size = 11)
 ```
 
+---
 ## How do the model stats look?
-#### Model Stats for #### For $$lstat = \beta_0 +\beta_1medv +\epsilon$$
-```{r modelstats, dev='svg',echo=FALSE,warning=FALSE}
+#### Model Stats for $lstat = \beta_0 +\beta_1medv +\epsilon$
+```{r modelstats2, dev='svg',echo=FALSE,warning=FALSE}
 lm_fit_Boston2  = lm(lstat ~ medv, data = Boston)
 lm_fit_Boston2_tidy <-tidy(lm_fit_Boston2)
 
@@ -204,7 +205,7 @@ lm_fit_Boston2_tidy %>%
 ```
 
 #### the Model metrics
-```{r modelsmetrics,echo=FALSE,warning=FALSE}
+```{r modelsmetrics2,echo=FALSE,warning=FALSE}
 
 glance(lm_fit_Boston2) %>% 
   dplyr::mutate_if(is.numeric, 
@@ -216,8 +217,8 @@ glance(lm_fit_Boston2) %>%
 
 ---
 ## how do the model diagnostic plots look?
-#### For $$lstat = \beta_0 +\beta_1medv +\epsilon$$ 
-```{r modeldiags, dev='svg',echo=FALSE,warning=FALSE}
+#### For $lstat = \beta_0 +\beta_1medv +\epsilon$ 
+```{r modeldiags2, dev='svg',echo=FALSE,warning=FALSE}
 autoplot(lm_fit_Boston2) + 
   theme_xaringan(title_font_size = 10,
                  text_font_size = 11)
