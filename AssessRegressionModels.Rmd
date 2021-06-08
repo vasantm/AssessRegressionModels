@@ -82,16 +82,26 @@ knitr::include_graphics(
 
 .footnote[[1] Gareth James, Daniela Witten, Trevor Hastie, Robert Tibshirani. An Introduction to Statistical Learning : with Applications in R. New York :Springer, 2013.]
 ---
-### Correlation<sup>2</sup> == R<sup>2</sup>?
+### r<sup>2</sup> (Correlation<sup>2</sup>) == R<sup>2</sup> ?
+.pull-left[
+As a refresher _correlation_ denoted by $r$ is defined as
+$$r = Cor(X,Y) = \frac{\sum_{i=1}^n(x_i - \bar{x})(y_i - \bar{y})}{\sqrt{\sum_{i=1}^n(x_i - \bar{x})^2}\sqrt{\sum_{i=1}^n(y_i - \bar{y})^2}}$$
+,is also a measure of linear relationship between $X$ and $Y$. This means we might be able to use $r = Cor(X,Y)$ instead of $R^2$ to assess the fit of the linear model. For simple linear regression setting it can be shown $R^2 = r^2$, which is to say squared correlation and the $R^2$ statistic are identical.
 
-As a refresher _correlation_ is defined as
-$$Cor(X,Y) = \frac{\sum_{i=1}^n(x_i - \bar{x})(y_i - \bar{y})}{\sqrt{\sum_{i=1}^n(x_i - \bar{x})^2}\sqrt{\sum_{i=1}^n(y_i - \bar{y})^2}}$$
-,is also a measure of linear relationship between $X$ and $Y$. This means we might be able to use $r = Cor(X,Y)$ instead of $R^2$ to assess the fit of the linear model.For simple linear regression setting it can be shown $R^2 = r^2$, which is to say squared correlation and the $R^2$ statistic are identical.
+The $r$ for `medv,lstat` variables from the `Boston` data set is `r with(Boston, cor(medv, lstat))`
+and $r^2$ is `r with(Boston, cor(medv, lstat)^2)`.
+]
+.pull-right[
+Meanwhile, the $R^2$ value from  a simple regression model given by
+$$Y= \beta_0 +\beta_1X_1 +\epsilon$$ which expressed in variable terms is $$medv = \beta_0 +\beta_1lstat +\epsilon$$ and the $R^2$ is `r with(Boston, summary(lm(medv ~ lstat))$r.squared)`. The $R^2$ is same even if we switch the $X,Y$ variables. The  $R^2$ for $$lstat = \beta_0 +\beta_1medv +\epsilon$$  is `r with(Boston, summary(lm(lstat ~ medv))$r.squared)`.
+]
 
+#### Note how the values of $r^2$ are equivalent to values of $R^2$.
 ---
 name: lmfit
 
 ### Now with linear model fitted
+#### $$medv = \beta_0 +\beta_1lstat +\epsilon$$ 
 
 ```{r code-fitted, dev='svg',echo=FALSE,warning=FALSE}
 
@@ -116,7 +126,35 @@ ggplot(.) +
         axis.title = element_text(size=14))
   
 ```
- 
+
+---
+### Now with linear model fitted by switching $Y$ & $X$
+#### $$lstat = \beta_0 +\beta_1medv +\epsilon$$ 
+
+```{r code-fitted-alt, dev='svg',echo=FALSE,warning=FALSE}
+
+
+formula <- y ~ x
+Boston %>% 
+  mutate(near_river = 
+           ifelse(chas==1,"yes",
+                  "no")) %>% 
+ggplot(.) +
+  aes(y=lstat, x=medv)+#,
+      #color = near_river) +
+  geom_point() +
+  geom_smooth(method = "lm", se = F) +
+  theme_xaringan(text_font_size = 11) +
+  scale_color_discrete() +
+  labs(title = "% popn. of lower status vs Med. value of homes in $1000s") +
+  stat_poly_eq(aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
+                   label.x.npc = "right", label.y.npc = 0.85,
+                   formula = formula, parse = TRUE, size = 4) +
+  theme(plot.title = element_text(size=16),
+        axis.title = element_text(size=14))
+  
+```
+
 ---
 
 ## How do the model stats look?
