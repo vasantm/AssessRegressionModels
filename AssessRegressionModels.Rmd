@@ -191,6 +191,37 @@ autoplot(lm_fit_Boston1) +
                  text_font_size = 11)
 ```
 
+## How do the model stats look?
+#### Model Stats for #### For $$lstat = \beta_0 +\beta_1medv +\epsilon$$
+```{r modelstats, dev='svg',echo=FALSE,warning=FALSE}
+lm_fit_Boston2  = lm(lstat ~ medv, data = Boston)
+lm_fit_Boston2_tidy <-tidy(lm_fit_Boston2)
+
+lm_fit_Boston2_tidy %>% 
+  dplyr::mutate_if(is.numeric, 
+                   ~ as.character(signif(.,4))) %>% 
+  knitr::kable(., format = 'html')
+```
+
+#### the Model metrics
+```{r modelsmetrics,echo=FALSE,warning=FALSE}
+
+glance(lm_fit_Boston2) %>% 
+  dplyr::mutate_if(is.numeric, 
+                   ~ as.character(signif(.,4))) %>% 
+  knitr::kable(., format = 'html')
+
+```
+
+
+---
+## how do the model diagnostic plots look?
+#### For $$lstat = \beta_0 +\beta_1medv +\epsilon$$ 
+```{r modeldiags, dev='svg',echo=FALSE,warning=FALSE}
+autoplot(lm_fit_Boston2) + 
+  theme_xaringan(title_font_size = 10,
+                 text_font_size = 11)
+```
 
 
 ---
