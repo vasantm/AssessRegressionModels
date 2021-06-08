@@ -64,9 +64,11 @@ ggplot(.) +
   aes(lstat, medv,
       color = near_river) +
   geom_point() +
-  theme_minimal() +
+   theme_xaringan(text_font_size = 11) +
   scale_color_discrete() +
-  labs(title = "Median value of homes in $1000s vs percent population of lower status")
+labs(title = "Med. value of homes in $1000s vs % popn. of lower status") +
+   theme(plot.title = element_text(size=16),
+         legend.title  = element_text(size=14))
 ```
 ]
 
@@ -99,11 +101,12 @@ ggplot(.) +
   geom_smooth(method = "lm", se = F) +
   theme_xaringan(text_font_size = 11) +
   scale_color_discrete() +
-  labs(title = "% popn. of lower status vs Med. value of homes in $1000s") +
+  labs(title = "Med. value of homes in $1000s vs % popn. of lower status") +
   stat_poly_eq(aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
                    label.x.npc = "right", label.y.npc = 0.85,
                    formula = formula, parse = TRUE, size = 4) +
-  theme(plot.title = element_text(size=14))
+  theme(plot.title = element_text(size=16),
+        axis.title = element_text(size=14))
   
 ```
  
