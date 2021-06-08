@@ -82,6 +82,12 @@ knitr::include_graphics(
 
 .footnote[[1] Gareth James, Daniela Witten, Trevor Hastie, Robert Tibshirani. An Introduction to Statistical Learning : with Applications in R. New York :Springer, 2013.]
 ---
+### Correlation<sup>2</sup> == R<sup>2</sup>?
+
+As a refresher _correlation_ is defined as
+$$\Cor(X,Y) = \frac{\sum_{i=1}^n(x_i - \bar{x})(y_i - \bar{y})}{\sqrt{\sum_{i=1}^n(x_i - \bar{x})^2}\sqrt{\sum_{i=1}^n(y_i - \bar{y})^2}} $$
+,is also a measure of linear relationship between $X$ and $Y$. This means we might be able to use $r = Cor(X,Y)$ instead of $R^2$ to assess the fit of the linear model.For simple linear regression setting it can be shown $R^2 = r^2$, which is to say squared correlation and the $R^2$ statistic are identical
+---
 name: lmfit
 
 ### Now with linear model fitted
