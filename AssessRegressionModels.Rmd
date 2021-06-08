@@ -94,6 +94,8 @@ and $r^2$ is `r with(Boston, cor(medv, lstat)^2)`.
 .pull-right[
 Meanwhile, the $R^2$ value from  a simple regression model given by
 $$Y= \beta_0 +\beta_1X_1 +\epsilon$$ which expressed in variable terms is $$medv = \beta_0 +\beta_1lstat +\epsilon$$ and the $R^2$ is `r with(Boston, summary(lm(medv ~ lstat))$r.squared)`. The $R^2$ is same even if we switch the $X,Y$ variables. The  $R^2$ for $$lstat = \beta_0 +\beta_1medv +\epsilon$$  is `r with(Boston, summary(lm(lstat ~ medv))$r.squared)`.
+
+These models are visualized on the next two slides.
 ]
 
 #### Note how the values of $r^2$ are equivalent to values of $R^2$.
