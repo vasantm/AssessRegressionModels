@@ -4,7 +4,7 @@
     <title>Assessing Multiple Regression Models</title>
     <meta charset="utf-8" />
     <meta name="author" content="Vasant Marur" />
-    <meta name="date" content="2021-06-04" />
+    <meta name="date" content="2021-06-08" />
     <script src="AssessRegressionModels_files/header-attrs/header-attrs.js"></script>
     <script src="AssessRegressionModels_files/htmlwidgets/htmlwidgets.js"></script>
     <script src="AssessRegressionModels_files/jquery/jquery.min.js"></script>
@@ -26,7 +26,7 @@ class: center, middle, inverse, title-slide
 # Assessing Multiple Regression Models
 ## why R<sup>2</sup> alone is not enough
 ### Vasant Marur
-### 2021-06-04
+### 2021-06-08
 
 ---
 
@@ -50,9 +50,11 @@ ggplot(.) +
   aes(lstat, medv,
       color = near_river) +
   geom_point() +
-  theme_minimal() +
+   theme_xaringan(text_font_size = 11) +
   scale_color_discrete() +
-  labs(title = "Median value of homes in $1000s vs percent population of lower status")
+labs(title = "Med. value of homes in $1000s vs % popn. of lower status") +
+   theme(plot.title = element_text(size=16),
+         legend.title  = element_text(size=14))
 ```
 ]
 
@@ -62,16 +64,41 @@ ggplot(.) +
 
 .footnote[[1] Gareth James, Daniela Witten, Trevor Hastie, Robert Tibshirani. An Introduction to Statistical Learning : with Applications in R. New York :Springer, 2013.]
 ---
+### r&lt;sup&gt;2&lt;/sup&gt; (Correlation&lt;sup&gt;2&lt;/sup&gt;) == R&lt;sup&gt;2&lt;/sup&gt; ?
+.pull-left[
+As a refresher _correlation_ denoted by `\(r\)` is defined as
+`$$r = Cor(X,Y) = \frac{\sum_{i=1}^n(x_i - \bar{x})(y_i - \bar{y})}{\sqrt{\sum_{i=1}^n(x_i - \bar{x})^2}\sqrt{\sum_{i=1}^n(y_i - \bar{y})^2}}$$`
+,is also a measure of linear relationship between `\(X\)` and `\(Y\)`. This means we might be able to use `\(r = Cor(X,Y)\)` instead of `\(R^2\)` to assess the fit of the linear model. For simple linear regression setting it can be shown `\(R^2 = r^2\)`, which is to say squared correlation and the `\(R^2\)` statistic are identical.
+
+The `\(r\)` for `medv,lstat` variables from the `Boston` data set is -0.7376627
+and `\(r^2\)` is 0.5441463.
+]
+.pull-right[
+Meanwhile, the `\(R^2\)` value from  a simple regression model given by
+`$$Y= \beta_0 +\beta_1X_1 +\epsilon$$` which expressed in variable terms is `$$medv = \beta_0 +\beta_1lstat +\epsilon$$` and the `\(R^2\)` is 0.5441463. The `\(R^2\)` is same even if we switch the `\(X,Y\)` variables. The  `\(R^2\)` for `$$lstat = \beta_0 +\beta_1medv +\epsilon$$`  is 0.5441463.
+
+These models are visualized on the next two slides.
+]
+
+#### Note how the values of `\(r^2\)` are equivalent to values of `\(R^2\)`.
+---
 name: lmfit
 
 ### Now with linear model fitted
+#### `$$medv = \beta_0 +\beta_1lstat +\epsilon$$` 
 
 &lt;img src="AssessRegressionModels_files/figure-html/code-fitted-1.svg" width="100%" /&gt;
- 
+
+---
+### Now with linear model fitted by switching `\(Y\)` &amp; `\(X\)`
+#### `$$lstat = \beta_0 +\beta_1medv +\epsilon$$` 
+
+&lt;img src="AssessRegressionModels_files/figure-html/code-fitted-alt-1.svg" width="100%" /&gt;
+
 ---
 
 ## How do the model stats look?
-#### Model Stats
+#### Model Stats for `\(medv = \beta_0 +\beta_1lstat +\epsilon\)` 
 &lt;table&gt;
  &lt;thead&gt;
   &lt;tr&gt;
@@ -139,9 +166,81 @@ name: lmfit
 
 ---
 ## how do the model diagnostic plots look?
-
+#### For `\(medv = \beta_0 +\beta_1lstat +\epsilon\)`
 &lt;img src="AssessRegressionModels_files/figure-html/modeldiags-1.svg" width="100%" /&gt;
 
+---
+## How do the model stats look?
+#### Model Stats for `\(lstat = \beta_0 +\beta_1medv +\epsilon\)`
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; term &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; estimate &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; std.error &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; statistic &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; p.value &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; (Intercept) &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 25.56 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.5682 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 44.98 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1.402e-178 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; medv &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -0.5728 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.02335 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -24.53 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 5.081e-88 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+#### the Model metrics
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; r.squared &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; adj.r.squared &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; sigma &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; statistic &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; p.value &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; df &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; logLik &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; AIC &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; BIC &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; deviance &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; df.residual &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; nobs &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 0.5441 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 0.5432 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 4.826 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 601.6 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 5.081e-88 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; -1513 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3033 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 3046 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 11740 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 504 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 506 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+---
+## how do the model diagnostic plots look?
+#### For `\(lstat = \beta_0 +\beta_1medv +\epsilon\)` 
+&lt;img src="AssessRegressionModels_files/figure-html/modeldiags2-1.svg" width="100%" /&gt;
 
 
 ---
@@ -190,8 +289,8 @@ head(random_data,n = 20) %&gt;%
                 options = list(pageLength = 4))
 ```
 
-<div id="htmlwidget-e85ed3b9ef210707a7ce" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-e85ed3b9ef210707a7ce">{"x":{"filter":"none","fillContainer":false,"data":[["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"],["9.85","0.18","4.82","6.16","5.02","2.47","10.56","2.53","13.09","2.69","9.52","14.43","-3.94","1.61","2.33","6.18","1.58","-10.28","-9.2","9.6"],["8.81","3.98","6","7.34","3.34","4.92","9.54","5.58","9.12","7","7.63","10.63","2.11","4.19","3.91","7.25","5.37","3.35","1.97","9.87"],["12.51","2.34","6.81","9.81","5.96","6.45","13.96","4.46","15.74","6.85","14.09","19.05","-0.28","4.39","5.95","8.8","3.37","-5.86","-5","14.05"],["7.07","5.36","7.64","5.54","6.92","5.76","6.51","6.7","5.49","8.19","9.65","9","3.32","6.09","5.06","6.61","5.91","1.98","4.98","7.4"],["7.27","5.16","7.25","7.8","3.74","7.6","10","4.88","5.4","3.51","4.58","9.2","5.67","8.24","6.56","8.36","4.99","1.68","3.93","8.18"],["7.63","3.57","6.74","5.84","6.54","7.96","5.84","4.63","8.9","7.91","9.8","10.02","1.33","5.88","5.86","7.94","5.41","-1.29","0.98","10.87"],["11.96","9.16","10.16","11.65","10.33","4.11","19.59","9.31","14.11","5.5","3.08","12.12","1.38","-2.44","10.23","8.48","12.35","-0.55","7.27","5.53"],["2.03","0.6","0.09","7.08","6.13","8.32","12.83","5.65","19.09","8.9","2.76","12.53","6.44","2.49","-1.27","14.6","2.72","-4.95","-1.94","7.28"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>y<\/th>\n      <th>x<\/th>\n      <th>x1<\/th>\n      <th>x2<\/th>\n      <th>x3<\/th>\n      <th>x4<\/th>\n      <th>x5<\/th>\n      <th>x6<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":4,"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}],"lengthMenu":[4,10,25,50,100]}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-6907e9492794f5a78059" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-6907e9492794f5a78059">{"x":{"filter":"none","fillContainer":false,"data":[["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"],["9.85","0.18","4.82","6.16","5.02","2.47","10.56","2.53","13.09","2.69","9.52","14.43","-3.94","1.61","2.33","6.18","1.58","-10.28","-9.2","9.6"],["8.81","3.98","6","7.34","3.34","4.92","9.54","5.58","9.12","7","7.63","10.63","2.11","4.19","3.91","7.25","5.37","3.35","1.97","9.87"],["12.51","2.34","6.81","9.81","5.96","6.45","13.96","4.46","15.74","6.85","14.09","19.05","-0.28","4.39","5.95","8.8","3.37","-5.86","-5","14.05"],["7.07","5.36","7.64","5.54","6.92","5.76","6.51","6.7","5.49","8.19","9.65","9","3.32","6.09","5.06","6.61","5.91","1.98","4.98","7.4"],["7.27","5.16","7.25","7.8","3.74","7.6","10","4.88","5.4","3.51","4.58","9.2","5.67","8.24","6.56","8.36","4.99","1.68","3.93","8.18"],["7.63","3.57","6.74","5.84","6.54","7.96","5.84","4.63","8.9","7.91","9.8","10.02","1.33","5.88","5.86","7.94","5.41","-1.29","0.98","10.87"],["11.96","9.16","10.16","11.65","10.33","4.11","19.59","9.31","14.11","5.5","3.08","12.12","1.38","-2.44","10.23","8.48","12.35","-0.55","7.27","5.53"],["2.03","0.6","0.09","7.08","6.13","8.32","12.83","5.65","19.09","8.9","2.76","12.53","6.44","2.49","-1.27","14.6","2.72","-4.95","-1.94","7.28"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>y<\/th>\n      <th>x<\/th>\n      <th>x1<\/th>\n      <th>x2<\/th>\n      <th>x3<\/th>\n      <th>x4<\/th>\n      <th>x5<\/th>\n      <th>x6<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":4,"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}],"lengthMenu":[4,10,25,50,100]}},"evals":[],"jsHooks":[]}</script>
 ]
 
 
