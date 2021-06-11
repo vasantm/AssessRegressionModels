@@ -445,6 +445,14 @@ ggplot(., aes(y=value,x=no_of_vars)) + geom_point() + geom_line() + facet_wrap(~
 The metrics don't change much after 3 or more variables, of course this will change for real data which are not as correlated. but it's pretty evident from this graph and the table on previous slide that R<sup>2</sup> does increase as we add more variables to the model.
 
 ---
+#### How do the Boston variables correlate with each other
+```{r, cache=TRUE,echo=FALSE,out.width = '1000px', out.width='772px'}
+ggpairs(Boston) +
+   theme_xaringan(title_font_size = 9,
+                 text_font_size = 8)
+```
+
+---
 ### Let's see how this approach works on the Boston data set
 ```{r boston-lm, echo=FALSE}
 lm_fit <-list()
